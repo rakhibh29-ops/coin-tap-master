@@ -9,7 +9,9 @@ user_data = {}
 LANG = {
     'en': {'start': '🪙 Welcome to Coin Tap Master! Tap to earn!'},
     'bn': {'start': '🪙 Coin Tap Master এ স্বাগতম! Tap করে কয়েন কামাও!'},
-    'hi': {'start': '🪙 Coin Tap Master में आपका स्वागत है! Tap करके सिक्के कमाओ!'}
+    'hi': {'start': '🪙 Coin Tap Master में आपका स्वागत है! Tap करके सिक्के कमाओ!'},
+    'ar': {'start': '🪙 مرحبًا بك في Coin Tap Master! اضغط لكسب العملات!'},
+    'zh': {'start': '🪙 欢迎来到 Coin Tap Master！点击赚钱！'}
 }
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -31,7 +33,9 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     user_id = query.from_user.id
-    lang = user_data.get(user_id, {'lang': 'bn'})['lang']
+    if user_id not in user_data:
+        user_data[user_id] = {'coins': 0, 'lang': 'bn'}
+    lang = user_data[user_id]['lang']
     
     if query.data == 'tap':
         user_data[user_id]['coins'] += 1
@@ -41,11 +45,14 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == 'balance':
         await query.edit_message_text(f"তোমার ব্যালেন্স: {user_data[user_id]['coins']} কয়েন")
     elif query.data == 'lang':
-        await query.edit_message_text("Select Language: /lang en or /lang bn or /lang hi")
+        text = "اختر اللغة: /lang ar\n选择语言: /lang zh\nSelect: /lang en /lang bn /lang hi"
+        await query.edit_message_text(text)
 
 async def lang_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.args:
         user_id = update.effective_user.id
+        if user_id not in user_data:
+            user_data[user_id] = {'coins': 0, 'lang': 'bn'}
         user_data[user_id]['lang'] = context.args[0]
         await update.message.reply_text(f"Language Changed to {context.args[0]}")
 
@@ -55,4 +62,4 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("lang", lang_cmd))
     app.add_handler(CallbackQueryHandler(button))
     print("Bot is running...")
-    app.run_polling() # এটা খুব জরুরি
+    app.run_polling()
